@@ -4,28 +4,28 @@
 #include "hist-equ.h"
 
 void run_cpu_gray_test(PGM_IMG img_in, char *out_filename);
+void run_gpu_gray_test(PGM_IMG img_in, char *out_filename);
 
 int main(int argc, char *argv[]){
     PGM_IMG img_ibuf_g;
 
-	if (argc != 3) {
-		printf("Run with input file name and output file name as arguments\n");
+	if (argc != 3 && argc !=4) {
+		printf("Run with input file name and output file name(s) as arguments\n");
 		exit(1);
 	}
-	
     printf("Running contrast enhancement for gray-scale images.\n");
     img_ibuf_g = read_pgm(argv[1]);
     run_cpu_gray_test(img_ibuf_g, argv[2]);
+    if (argc == 4)
+        run_gpu_gray_test(img_ibuf_g, argv[3]);
     free_pgm(img_ibuf_g);
 
 	return 0;
 }
 
-
-
 void run_cpu_gray_test(PGM_IMG img_in, char *out_filename)
 {
-    unsigned int timer = 0;
+    //unsigned int timer = 0;
     PGM_IMG img_obuf;
     
     
@@ -35,6 +35,17 @@ void run_cpu_gray_test(PGM_IMG img_in, char *out_filename)
     free_pgm(img_obuf);
 }
 
+void run_gpu_gray_test(PGM_IMG img_in, char *out_filename)
+{
+    //unsigned int timer = 0;
+    PGM_IMG img_obuf;
+
+
+    printf("Starting GPU processing...\n");
+    img_obuf = contrast_enhancement_g_GPU(img_in);
+    write_pgm(img_obuf, out_filename);
+    free_pgm(img_obuf);
+}
 
 PGM_IMG read_pgm(const char * path){
     FILE * in_file;

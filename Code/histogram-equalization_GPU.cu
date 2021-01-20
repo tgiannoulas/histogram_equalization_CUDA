@@ -1,27 +1,47 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "hist-equ.cu.h"
+
+extern "C"{
 #include "hist-equ.h"
+}
 
+__device__ void print_id() {
+    printf("by: %d, bx: %d, tx: %d, ty: %d\n", blockIdx.y, blockIdx.x, threadIdx.y, threadIdx.x);
+    return;
+}
 
-void histogram(int * hist_out, unsigned char * img_in, int img_size, int nbr_bin){
-    int i;
+__global__ void histogram_GPU(int * hist_out, unsigned char * img_in, int img_size, int nbr_bin){
+
+    int pixel = blockIdx.x * blockDim.x + threadIdx.x;
+    
+    if (pixel < img_size) {
+        atomicAdd(&hist_out[img_in[pixel]], 1);
+    }
+    
+    /*printf("%d: %d\n",i, img_in[i]);
+    atomicAdd(&hist_out[img_in[i]], 1);
+    printf("%d\n", hist_out[img_in[i]]);*/
+
+    //hist_out[img_in[i]]++;
+
+    /*int i;
     for ( i = 0; i < nbr_bin; i ++){
         hist_out[i] = 0;
     }
 
     for ( i = 0; i < img_size; i ++){
         hist_out[img_in[i]] ++;
-    }
-
+    }*/
 }
 
-void histogram_equalization(unsigned char * img_out, unsigned char * img_in, 
+__global__ void histogram_equalization_GPU(unsigned char * img_out, unsigned char * img_in, 
                             int * hist_in, int img_size, int nbr_bin){
-    int *lut = (int *)malloc(sizeof(int)*nbr_bin);
-    int i, cdf, min, d;
+    //int *lut = (int *)malloc(sizeof(int)*nbr_bin);
+    //int i, cdf, min, d;
     /* Construct the LUT by calculating the CDF */
-    cdf = 0;
+    /*cdf = 0;
     min = 0;
     i = 0;
     while(min == 0){
@@ -35,15 +55,15 @@ void histogram_equalization(unsigned char * img_out, unsigned char * img_in,
         if(lut[i] < 0){
             lut[i] = 0;
         }
-    }
+    }*/
     
     /* Get the result image */
-    for(i = 0; i < img_size; i ++){
+    /*for(i = 0; i < img_size; i ++){
         if(lut[img_in[i]] > 255){
             img_out[i] = 255;
         }
         else{
             img_out[i] = (unsigned char)lut[img_in[i]];
         }
-    }
+    }*/
 }
