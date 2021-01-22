@@ -75,7 +75,7 @@ PGM_IMG contrast_enhancement_g_GPU(PGM_IMG h_img_in)
 
     //time histogram equalization
     clock_gettime(CLOCK_MONOTONIC_RAW, &time_start);
-    histogram_lut_GPU<<<h_img_in.w * h_img_in.h / MAX_THREAD_IN_BLOCK + 1, MAX_THREAD_IN_BLOCK>>>
+    histogram_lut_GPU<<<1, 1>>>
     	(d_hist, d_lut, h_img_in.w * h_img_in.h, 256);
     cudaCheckError();
     histogram_equalization_GPU<<<h_img_in.w * h_img_in.h / MAX_THREAD_IN_BLOCK + 1, MAX_THREAD_IN_BLOCK>>>

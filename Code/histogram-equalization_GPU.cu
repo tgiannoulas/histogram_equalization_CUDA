@@ -22,29 +22,25 @@ __global__ void histogram_GPU(int * hist_out, unsigned char * img_in, int img_si
 }
 
 __global__ void histogram_lut_GPU(int * hist_in, int * lut, int img_size, int nbr_bin) {
-
-    int pixel, i, cdf, min, d;
-    pixel = blockIdx.x * blockDim.x + threadIdx.x;
-
+    int i, cdf, min, d;
+    
     /* Construct the LUT by calculating the CDF */
-    if (pixel == 0) {
-        cdf = 0;
-        min = 0;
-        i = 0;
-        while (min == 0) {
-            min = hist_in[i++];
+    cdf = 0;
+    min = 0;
+    i = 0;
+    while (min == 0) {
+        min = hist_in[i++];
+    }
+    d = img_size - min;
+    for (i = 0; i < nbr_bin; i ++) {
+        cdf += hist_in[i];
+        //lut[i] = (cdf - min)*(nbr_bin - 1)/d;
+        lut[i] = (int)(((float)cdf - min)*255/d + 0.5);
+        if (lut[i] < 0) {
+            lut[i] = 0;
         }
-        d = img_size - min;
-        for (i = 0; i < nbr_bin; i ++) {
-            cdf += hist_in[i];
-            //lut[i] = (cdf - min)*(nbr_bin - 1)/d;
-            lut[i] = (int)(((float)cdf - min)*255/d + 0.5);
-            if (lut[i] < 0) {
-                lut[i] = 0;
-            }
-            else if (lut[i] > 255) {
-                lut[i] = 255;
-            }
+        else if (lut[i] > 255) {
+            lut[i] = 255;
         }
     }
 }
