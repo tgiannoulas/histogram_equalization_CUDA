@@ -22,7 +22,7 @@ PGM_IMG contrast_enhancement_g_GPU(PGM_IMG h_img_in)
     //times
     struct timespec time_start, time_end;
 
-    //int h_hist[256];
+    /*int h_hist[256];
     int hist_CPU[256];
     PGM_IMG result_CPU;
     result_CPU.w = h_img_in.w;
@@ -34,7 +34,7 @@ PGM_IMG contrast_enhancement_g_GPU(PGM_IMG h_img_in)
     	free_pgm(h_img_in);
     	cudaDeviceReset();
 		exit(1);
-    }
+    }*/
     
     //Allocate host memory
     h_result.w = h_img_in.w;
@@ -58,37 +58,38 @@ PGM_IMG contrast_enhancement_g_GPU(PGM_IMG h_img_in)
     /*----------GPU COMPUTATION----------*/
 
     //time histogram
-    //clock_gettime(CLOCK_MONOTONIC_RAW, &time_start);
+    clock_gettime(CLOCK_MONOTONIC_RAW, &time_start);
     //Kernel with threads equal to pixels + the extra padding
-    histogram_GPU<<<h_img_in.w * h_img_in.h / MAX_THREAD_IN_BLOCK + 1, MAX_THREAD_IN_BLOCK>>>
+    histogram_GPU<<<h_img_in.w * h_img_in.h / MAX_THREAD_IN_BLOCK + 1, MAX_THREAD_IN_BLOCK, 256 * sizeof(int)>>>
     	(d_hist, d_img_in.img, h_img_in.h * h_img_in.w, 256);
-    //clock_gettime(CLOCK_MONOTONIC_RAW, &time_end);
+    clock_gettime(CLOCK_MONOTONIC_RAW, &time_end);
     cudaCheckError();
-    //printf ("GPU time = %15.10f seconds\n", time_format(time_start, time_end));
+    printf ("GPU time = %15.10f seconds\n", time_format(time_start, time_end));
     
     //cudaMemcpy(h_hist, d_hist, 256 * sizeof(int), cudaMemcpyDeviceToHost);
     //printf("GPU HISTOGRAM\n\n");
     //print_histogram(h_hist, 256);
-    //CPU histogram and diff
-    histogram(hist_CPU, h_img_in.img, h_img_in.h * h_img_in.w, 256);
+    //histogram(hist_CPU, h_img_in.img, h_img_in.h * h_img_in.w, 256);
+    //printf("CPU HISTOGRAM\n\n");
+    //print_histogram(hist_CPU, 256);
     //histogram_diff(h_hist, hist_CPU, 256);
 
     //time histogram equalization
-    clock_gettime(CLOCK_MONOTONIC_RAW, &time_start);
+    //clock_gettime(CLOCK_MONOTONIC_RAW, &time_start);
     histogram_lut_GPU<<<1, 1>>>
     	(d_hist, d_lut, h_img_in.w * h_img_in.h, 256);
     cudaCheckError();
     histogram_equalization_GPU<<<h_img_in.w * h_img_in.h / MAX_THREAD_IN_BLOCK + 1, MAX_THREAD_IN_BLOCK>>>
     	(d_result.img, d_img_in.img, d_lut, h_img_in.w * h_img_in.h);
     cudaCheckError();
-    clock_gettime(CLOCK_MONOTONIC_RAW, &time_end);
-    printf ("GPU time = %15.10f seconds\n", time_format(time_start, time_end));
+    //clock_gettime(CLOCK_MONOTONIC_RAW, &time_end);
+    //printf ("GPU time = %15.10f seconds\n", time_format(time_start, time_end));
     cudaMemcpy(h_result.img, d_result.img, h_img_in.w * h_img_in.h * sizeof(unsigned char), cudaMemcpyDeviceToHost);
     //CPU histogram equalization and diff
-    histogram_equalization(result_CPU.img, h_img_in.img, hist_CPU, h_img_in.w * h_img_in.h, 256);
-    img_diff(result_CPU, h_result);
+    //histogram_equalization(result_CPU.img, h_img_in.img, hist_CPU, h_img_in.w * h_img_in.h, 256);
+    //img_diff(result_CPU, h_result);
     
-    free_pgm(result_CPU);
+    //free_pgm(result_CPU);
     cudaFree(d_img_in.img);
     cudaFree(d_result.img);
     cudaFree(d_hist);

@@ -14,10 +14,33 @@ __device__ void print_id() {
 
 __global__ void histogram_GPU(int * hist_out, unsigned char * img_in, int img_size, int nbr_bin) {
 
-    int pixel = blockIdx.x * blockDim.x + threadIdx.x;
-    
+    int pixel;
+
+    //if (((blockIdx.x / blockDim.x) + 1) * (blockDim.x * blockDim.x) < img_size) {
+        //pixel = (blockIdx.x / blockDim.x) * (blockDim.x * blockDim.x) + (threadIdx.x * blockDim.x) + (blockIdx.x % blockDim.x);
+    //}
+    //else {
+        pixel = blockIdx.x * blockDim.x + threadIdx.x;
+    //}
+    //pixel = threadIdx.x * img_size / MAX_THREAD_IN_BLOCK + blockIdx.x;
+    /*if (blockIdx.x == 1024 && threadIdx.x == 0) {
+        printf("pixel: %d\n", pixel);
+    }*/
+    extern __shared__ int sh_hist_out[];
+    if (threadIdx.x < nbr_bin) {
+        sh_hist_out[threadIdx.x] = 0;
+    }
+
+    __syncthreads();
+
     if (pixel < img_size) {
-        atomicAdd(&hist_out[img_in[pixel]], 1);
+        atomicAdd(&sh_hist_out[img_in[pixel]], 1);
+    }
+
+    __syncthreads();
+
+    if (threadIdx.x < nbr_bin) {
+        atomicAdd(&hist_out[threadIdx.x], sh_hist_out[threadIdx.x]);
     }
 }
 

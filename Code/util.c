@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "hist-equ.h"
+#define ABS(val)    ((val)<0.0 ? (-(val)) : (val))
 
 void print_histogram(int *hist, int nbr_bin) {
     for ( int i = 0; i < nbr_bin; i ++){
@@ -11,12 +12,16 @@ void print_histogram(int *hist, int nbr_bin) {
 }
 
 void histogram_diff(int* hist_1, int* hist_2, int nbr_bin) {
+    //int diff;
     for (int i = 0; i < nbr_bin; i++) {
         if (hist_1[i] != hist_2[i]) {
+            //diff += ABS(hist_1[i] - hist_2[i]);
+            //printf("hist_1[%d] = %d, hist_2[%d] = %d\n", i, hist_1[i], i , hist_2[i]);
             printf("Histograms are different\n");
             return;
         }
     }
+    //printf("%d\n", diff);
     printf("Histograms are the same\n");
     return;
 }
